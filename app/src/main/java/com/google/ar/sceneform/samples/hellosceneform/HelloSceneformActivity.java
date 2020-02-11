@@ -27,6 +27,7 @@ import com.google.ar.sceneform.Node;
 import com.google.ar.sceneform.Scene;
 import com.google.ar.sceneform.Sun;
 import com.google.ar.sceneform.collision.Box;
+import com.google.ar.sceneform.collision.Ray;
 import com.google.ar.sceneform.math.Quaternion;
 import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.Color;
@@ -38,7 +39,6 @@ import com.google.ar.sceneform.ux.ScaleController;
 import com.google.ar.sceneform.ux.TransformableNode;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -53,7 +53,7 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
     private TextView txtDistance;
     Button btnDist, btnHeight, btnClear, btnMyAction;
     ModelRenderable cubeRenderable, heightRenderable;
-    boolean btnHeightClicked, btnLengthClicked, btnMYActionClicked;
+    boolean btnHeightClicked, btnLengthClicked, btnMyActionClicked;
     Vector3 point1, point2;
 
     @SuppressLint("SetTextI18n")
@@ -66,6 +66,8 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
             return;
         }
 
+        Toast.makeText(getApplicationContext(), "Start", Toast.LENGTH_SHORT).show();
+
         setContentView(R.layout.activity_ux);
         arFragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
         txtDistance = findViewById(R.id.txtDistance);
@@ -73,21 +75,23 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
         btnDist.setOnClickListener(v -> {
             btnLengthClicked = true;
             btnHeightClicked = false;
-            btnMYActionClicked = false;
+            btnMyActionClicked = false;
             onClear();
         });
         btnHeight = findViewById(R.id.btnHeight);
         btnHeight.setOnClickListener(v -> {
             btnHeightClicked = true;
             btnLengthClicked = false;
-            btnMYActionClicked = false;
+            btnMyActionClicked = false;
             onClear();
         });
         btnMyAction = findViewById(R.id.btnMyAction);
         btnMyAction.setOnClickListener(v -> {
+//            Toast.makeText(getApplicationContext(), "MyAction started", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), String.valueOf(arFragment.isArRequired()), Toast.LENGTH_SHORT).show();
             btnHeightClicked = false;
             btnLengthClicked = false;
-            btnMYActionClicked = true;
+            btnMyActionClicked = true;
             onClear();
         });
         btnClear = findViewById(R.id.clear);
@@ -179,6 +183,96 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
                                 arrayList2.add(pose.tx());
                                 arrayList2.add(pose.ty());
                                 arrayList2.add(pose.tz());
+                                float d = getDistanceMeters(arrayList1, arrayList2);
+                                txtDistance.setText("Distance: " + String.valueOf(d));
+                            }
+
+                            TransformableNode transformableNode = new TransformableNode(arFragment.getTransformationSystem());
+                            transformableNode.setParent(anchorNode);
+                            transformableNode.setRenderable(cubeRenderable);
+                            transformableNode.select();
+
+                            Vector3 point1, point2;
+                            point1 = lastAnchorNode.getWorldPosition();
+                            point2 = anchorNode.getWorldPosition();
+
+                            final Vector3 difference = Vector3.subtract(point1, point2);
+                            final Vector3 directionFromTopToBottom = difference.normalized();
+                            final Quaternion rotationFromAToB =
+                                    Quaternion.lookRotation(directionFromTopToBottom, Vector3.up());
+                            MaterialFactory.makeOpaqueWithColor(getApplicationContext(), new Color(0, 255, 244))
+                                    .thenAccept(
+                                            material -> {
+                                                ModelRenderable model = ShapeFactory.makeCube(
+                                                        new Vector3(.01f, .01f, difference.length()),
+                                                        Vector3.zero(), material);
+                                                Node node = new Node();
+                                                node.setParent(anchorNode);
+                                                node.setRenderable(model);
+                                                node.setWorldPosition(Vector3.add(point1, point2).scaled(.5f));
+                                                node.setWorldRotation(rotationFromAToB);
+                                            }
+                                    );
+                            lastAnchorNode = anchorNode;
+                        }
+                    }
+
+                    if (btnMyActionClicked) {
+                        if (lastAnchorNode == null) {
+                            Anchor anchor = hitResult.createAnchor();
+                            AnchorNode anchorNode = new AnchorNode(anchor);
+                            anchorNode.setParent(arFragment.getArSceneView().getScene());
+
+                            Pose pose = anchor.getPose();
+                            if (arrayList1.isEmpty()) {
+                                arrayList1.add(pose.tx());
+                                arrayList1.add(pose.ty());
+                                arrayList1.add(pose.tz());
+                            }
+
+                            TransformableNode transformableNode = new TransformableNode(arFragment.getTransformationSystem());
+                            transformableNode.setParent(anchorNode);
+                            transformableNode.setRenderable(cubeRenderable);
+                            transformableNode.select();
+                            lastAnchorNode = anchorNode;
+
+                            Toast.makeText(getApplicationContext(), "lastAnchorNode == null: " + String.valueOf(lastAnchorNode == null), Toast.LENGTH_SHORT).show();
+                        } else {
+                            int val = motionEvent.getActionMasked();
+                            float axisVal = motionEvent.getAxisValue(MotionEvent.AXIS_X, motionEvent.getPointerId(motionEvent.getPointerCount() - 1));
+                            Log.e("Values in MyAction:", String.valueOf(val) + String.valueOf(axisVal));
+
+                            Camera camera = arFragment.getArSceneView().getScene().getCamera();
+                            Ray ray = new Ray(camera.getLocalPosition(), camera.getForward());
+                            HitTestResult result = arFragment.getArSceneView().getScene().hitTest(ray);
+                            Vector3 resultPosition = result.getPoint();
+
+
+                            AnchorNode anchorNode = new AnchorNode();
+                            anchorNode.setParent(result.getNode());
+                            anchorNode.setWorldPosition(resultPosition);
+
+                            Toast.makeText(getApplicationContext(), "Don't touch it!!!", Toast.LENGTH_LONG).show();
+
+//                            Anchor anchor = hitResult.createAnchor();
+//                            AnchorNode anchorNode = new AnchorNode(anchor);
+//                            anchorNode.setParent(arFragment.getArSceneView().getScene());
+//
+//                            Pose pose = anchor.getPose();
+
+                            if (arrayList2.isEmpty()) {
+                                arrayList2.add(resultPosition.x);
+                                arrayList2.add(resultPosition.y);
+                                arrayList2.add(resultPosition.z);
+                                float d = getDistanceMeters(arrayList1, arrayList2);
+                                txtDistance.setText("Distance: " + String.valueOf(d));
+                            } else {
+                                arrayList1.clear();
+                                arrayList1.addAll(arrayList2);
+                                arrayList2.clear();
+                                arrayList2.add(resultPosition.x);
+                                arrayList2.add(resultPosition.y);
+                                arrayList2.add(resultPosition.z);
                                 float d = getDistanceMeters(arrayList1, arrayList2);
                                 txtDistance.setText("Distance: " + String.valueOf(d));
                             }
