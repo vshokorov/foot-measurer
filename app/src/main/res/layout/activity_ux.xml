@@ -24,11 +24,18 @@
         android:layout_gravity="end"/>
 
     <Button
+        android:id="@+id/clear"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/clear"
-        android:id="@+id/clear"
-        android:layout_gravity="center_horizontal"/>
+        android:layout_gravity="center_horizontal"
+        android:text="@string/clear" />
+
+    <Button
+        android:id="@+id/btnMyAction"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:text="@string/my_action" />
 
     <TextView
         android:textSize="20sp"

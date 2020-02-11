@@ -51,9 +51,9 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
     private ArFragment arFragment;
     private AnchorNode lastAnchorNode;
     private TextView txtDistance;
-    Button btnDist, btnHeight, btnClear;
+    Button btnDist, btnHeight, btnClear, btnMyAction;
     ModelRenderable cubeRenderable, heightRenderable;
-    boolean btnHeightClicked, btnLengthClicked;
+    boolean btnHeightClicked, btnLengthClicked, btnMYActionClicked;
     Vector3 point1, point2;
 
     @SuppressLint("SetTextI18n")
@@ -73,12 +73,21 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
         btnDist.setOnClickListener(v -> {
             btnLengthClicked = true;
             btnHeightClicked = false;
+            btnMYActionClicked = false;
             onClear();
         });
         btnHeight = findViewById(R.id.btnHeight);
         btnHeight.setOnClickListener(v -> {
             btnHeightClicked = true;
             btnLengthClicked = false;
+            btnMYActionClicked = false;
+            onClear();
+        });
+        btnMyAction = findViewById(R.id.btnMyAction);
+        btnMyAction.setOnClickListener(v -> {
+            btnHeightClicked = false;
+            btnLengthClicked = false;
+            btnMYActionClicked = true;
             onClear();
         });
         btnClear = findViewById(R.id.clear);
@@ -104,7 +113,7 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
 
 
         arFragment.setOnTapArPlaneListener(
-                (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
+                    (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
                     if (cubeRenderable == null) {
                         return;
                     }
