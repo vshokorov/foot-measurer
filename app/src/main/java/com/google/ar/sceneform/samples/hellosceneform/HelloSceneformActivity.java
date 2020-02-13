@@ -220,9 +220,24 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
 
                     if (btnMyActionClicked) {
                         if (lastAnchorNode == null) {
-                            Anchor anchor = hitResult.createAnchor();
-                            AnchorNode anchorNode = new AnchorNode(anchor);
-                            anchorNode.setParent(arFragment.getArSceneView().getScene());
+                            AnchorNode anchorNode = new AnchorNode();
+                            Anchor anchor = null;
+
+                            float phone_width, phone_height;
+                            Display display = getWindowManager().getDefaultDisplay();
+                            android.graphics.Point outSize = new android.graphics.Point();
+                            display.getSize(outSize);
+                            phone_width = outSize.x;
+                            phone_height = outSize.y;
+
+                            try {
+                                Frame frame = arFragment.getArSceneView().getArFrame();
+                                anchor = frame.hitTest(phone_width/2, phone_height/2 + 100).get(0).createAnchor();
+                                anchorNode = new AnchorNode(anchor);
+                                anchorNode.setParent(arFragment.getArSceneView().getScene());
+                            } catch (Exception exception) {
+                                Toast.makeText(getApplicationContext(), "error: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
 
                             Pose pose = anchor.getPose();
                             if (arrayList1.isEmpty()) {
@@ -237,19 +252,20 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
                             transformableNode.select();
                             lastAnchorNode = anchorNode;
 
-                            Toast.makeText(getApplicationContext(), "lastAnchorNode == null: " + String.valueOf(lastAnchorNode == null), Toast.LENGTH_SHORT).show();
+//                            Toast.makeText(getApplicationContext(), "lastAnchorNode == null: " + String.valueOf(lastAnchorNode == null), Toast.LENGTH_SHORT).show();
                         } else {
                             int val = motionEvent.getActionMasked();
                             float axisVal = motionEvent.getAxisValue(MotionEvent.AXIS_X, motionEvent.getPointerId(motionEvent.getPointerCount() - 1));
                             Log.e("Values in MyAction:", String.valueOf(val) + String.valueOf(axisVal));
 
-                            Camera camera = arFragment.getArSceneView().getScene().getCamera();
-                            Ray ray = new Ray(camera.getLocalPosition(), camera.getForward());
-                            HitTestResult result = arFragment.getArSceneView().getScene().hitTest(ray);
-                            Vector3 resultPosition = result.getPoint();
+//                            Camera camera = arFragment.getArSceneView().getScene().getCamera();
+//                            Ray ray = new Ray(camera.getLocalPosition(), camera.getForward());
+//                            HitTestResult result = arFragment.getArSceneView().getScene().hitTest(ray);
+//                            Vector3 resultPosition = result.getPoint();
 
 
                             AnchorNode anchorNode = new AnchorNode();
+                            Anchor anchor = null;
 ////                            anchorNode.setParent(arFragment.getArSceneView().getScene());
 //                            anchorNode.setParent(lastAnchorNode.getParent());
 //                            Vector3 WorldPosition = result.getPoint();
@@ -264,12 +280,13 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
 
                             try {
                                 Frame frame = arFragment.getArSceneView().getArFrame();
-                                Anchor anchor = frame.hitTest(phone_width/2, phone_height/2).get(0).createAnchor();
+                                anchor = frame.hitTest(phone_width/2, phone_height/2 + 100).get(0).createAnchor();
                                 anchorNode = new AnchorNode(anchor);
                                 anchorNode.setParent(arFragment.getArSceneView().getScene());
                             } catch (Exception exception) {
-                                Toast.makeText(getApplicationContext(), exception.getMessage(), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getApplicationContext(), "error: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
                             }
+
 //                            Vector3.subtract()
 
                             Toast.makeText(getApplicationContext(), anchorNode.toString(), Toast.LENGTH_SHORT).show();
@@ -278,21 +295,21 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
 //                            AnchorNode anchorNode = new AnchorNode(anchor);
 //                            anchorNode.setParent(arFragment.getArSceneView().getScene());
 //
-//                            Pose pose = anchor.getPose();
+                            Pose pose = anchor.getPose();
 
                             if (arrayList2.isEmpty()) {
-                                arrayList2.add(resultPosition.x);
-                                arrayList2.add(resultPosition.y);
-                                arrayList2.add(resultPosition.z);
+                                arrayList2.add(pose.tx());
+                                arrayList2.add(pose.ty());
+                                arrayList2.add(pose.tz());
                                 float d = getDistanceMeters(arrayList1, arrayList2);
                                 txtDistance.setText("Distance: " + String.valueOf(d));
                             } else {
                                 arrayList1.clear();
                                 arrayList1.addAll(arrayList2);
                                 arrayList2.clear();
-                                arrayList2.add(resultPosition.x);
-                                arrayList2.add(resultPosition.y);
-                                arrayList2.add(resultPosition.z);
+                                arrayList2.add(pose.tx());
+                                arrayList2.add(pose.ty());
+                                arrayList2.add(pose.tz());
                                 float d = getDistanceMeters(arrayList1, arrayList2);
                                 txtDistance.setText("Distance: " + String.valueOf(d));
                             }
