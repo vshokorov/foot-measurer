@@ -9,6 +9,7 @@ import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.widget.Button;
 import android.widget.TextView;
@@ -249,10 +250,29 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
 
 
                             AnchorNode anchorNode = new AnchorNode();
-                            anchorNode.setParent(result.getNode());
-                            anchorNode.setWorldPosition(resultPosition);
+////                            anchorNode.setParent(arFragment.getArSceneView().getScene());
+//                            anchorNode.setParent(lastAnchorNode.getParent());
+//                            Vector3 WorldPosition = result.getPoint();
+//                            anchorNode.setWorldPosition(WorldPosition);
 
-                            Toast.makeText(getApplicationContext(), "Don't touch it!!!", Toast.LENGTH_LONG).show();
+                            float phone_width, phone_height;
+                            Display display = getWindowManager().getDefaultDisplay();
+                            android.graphics.Point outSize = new android.graphics.Point();
+                            display.getSize(outSize);
+                            phone_width = outSize.x;
+                            phone_height = outSize.y;
+
+                            try {
+                                Frame frame = arFragment.getArSceneView().getArFrame();
+                                Anchor anchor = frame.hitTest(phone_width/2, phone_height/2).get(0).createAnchor();
+                                anchorNode = new AnchorNode(anchor);
+                                anchorNode.setParent(arFragment.getArSceneView().getScene());
+                            } catch (Exception exception) {
+                                Toast.makeText(getApplicationContext(), exception.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
+//                            Vector3.subtract()
+
+                            Toast.makeText(getApplicationContext(), anchorNode.toString(), Toast.LENGTH_SHORT).show();
 
 //                            Anchor anchor = hitResult.createAnchor();
 //                            AnchorNode anchorNode = new AnchorNode(anchor);
@@ -290,6 +310,8 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
                             final Vector3 directionFromTopToBottom = difference.normalized();
                             final Quaternion rotationFromAToB =
                                     Quaternion.lookRotation(directionFromTopToBottom, Vector3.up());
+
+                            AnchorNode finalAnchorNode = anchorNode;
                             MaterialFactory.makeOpaqueWithColor(getApplicationContext(), new Color(0, 255, 244))
                                     .thenAccept(
                                             material -> {
@@ -297,7 +319,7 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
                                                         new Vector3(.01f, .01f, difference.length()),
                                                         Vector3.zero(), material);
                                                 Node node = new Node();
-                                                node.setParent(anchorNode);
+                                                node.setParent(finalAnchorNode);
                                                 node.setRenderable(model);
                                                 node.setWorldPosition(Vector3.add(point1, point2).scaled(.5f));
                                                 node.setWorldRotation(rotationFromAToB);
