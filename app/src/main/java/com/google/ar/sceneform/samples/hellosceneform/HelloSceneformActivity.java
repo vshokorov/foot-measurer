@@ -4,9 +4,16 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.media.Image;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Display;
@@ -20,6 +27,7 @@ import com.google.ar.core.Frame;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
 import com.google.ar.core.Pose;
+import com.google.ar.core.exceptions.NotYetAvailableException;
 import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.Camera;
 import com.google.ar.sceneform.FrameTime;
@@ -39,6 +47,9 @@ import com.google.ar.sceneform.ux.ArFragment;
 import com.google.ar.sceneform.ux.ScaleController;
 import com.google.ar.sceneform.ux.TransformableNode;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -52,9 +63,9 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
     private ArFragment arFragment;
     private AnchorNode lastAnchorNode;
     private TextView txtDistance;
-    Button btnDist, btnHeight, btnClear, btnMyAction, btnTestHit;
+    Button btnDist, btnHeight, btnClear, btnMyAction, btnTestHit, btnTakePhoto;
     ModelRenderable cubeRenderable, heightRenderable;
-    boolean btnHeightClicked, btnLengthClicked, btnMyActionClicked, btnTestHitClicked;
+    boolean btnHeightClicked, btnLengthClicked, btnMyActionClicked, btnTestHitClicked, btnTakePhotoClicked;
     Vector3 point1, point2;
 
     @SuppressLint("SetTextI18n")
@@ -98,8 +109,8 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
             btnTestHitClicked = false;
             onClear();
         });
-        btnMyAction = findViewById(R.id.btnTestHit);
-        btnMyAction.setOnClickListener(v -> {
+        btnTestHit = findViewById(R.id.btnTestHit);
+        btnTestHit.setOnClickListener(v -> {
 //            Toast.makeText(getApplicationContext(), "MyAction started", Toast.LENGTH_SHORT).show();
             Toast.makeText(getApplicationContext(), String.valueOf(arFragment.isArRequired()), Toast.LENGTH_SHORT).show();
             btnHeightClicked = false;
@@ -108,6 +119,15 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
             btnTestHitClicked = true;
             onClear();
         });
+        btnTakePhoto = findViewById(R.id.btnTakePhoto);
+        btnTakePhoto.setOnClickListener(v -> {
+            Toast.makeText(this, "Convert！", Toast.LENGTH_SHORT).show();
+            // Get Bitmap for corner detection
+            Bitmap bitmap = getBitmapFromView();
+            // Save Bitmap to album
+            saveBmp2Gallery(bitmap,"aaaa");
+        });
+
         btnClear = findViewById(R.id.clear);
         btnClear.setOnClickListener(v -> onClear());
 
@@ -411,6 +431,65 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
                     }
                 });
 
+    }
+
+    private Bitmap getBitmapFromView(){
+        Bitmap bitmap = null;
+        try {
+            Image image = arFragment.getArSceneView().getArFrame().acquireCameraImage();
+            byte[] bytes = UtilsBitmap.imageToByte(image);
+            bitmap = BitmapFactory.decodeByteArray(bytes,0,bytes.length,null);
+            bitmap = UtilsBitmap.rotateBitmap(bitmap, 90);
+        } catch (NotYetAvailableException e) {
+            e.printStackTrace();
+        }
+        return bitmap;
+    }
+
+    public void saveBmp2Gallery(Bitmap bmp, String picName) {
+
+        String fileName = null;
+        //System album catalog
+        String galleryPath= Environment.getExternalStorageDirectory()
+                + File.separator + Environment.DIRECTORY_DCIM
+                +File.separator+"Camera"+File.separator;
+
+
+        // Declare file objects
+        File file = null;
+        // Declare output stream
+        FileOutputStream outStream = null;
+
+        try {
+            // If there is a Target file, get the file object directly, otherwise create a file with filename as the name
+            file = new File(galleryPath, picName+ ".jpg");
+
+            // Get file relative path
+            fileName = file.toString();
+            // Get the output stream, if there is content in the file, append the content
+            outStream = new FileOutputStream(fileName);
+            if (null != outStream) {
+                bmp.compress(Bitmap.CompressFormat.PNG, 90, outStream);
+            }
+
+        } catch (Exception e) {
+            e.getStackTrace();
+        }finally {
+            try {
+                if (outStream != null) {
+                    outStream.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        MediaStore.Images.Media.insertImage(getContentResolver(), bmp, fileName, null);
+        Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        Uri uri = Uri.fromFile(file);
+        intent.setData(uri);
+        sendBroadcast(intent);
+
+        Toast.makeText(this, "Finish saving！", Toast.LENGTH_SHORT).show();
     }
 
     private void onClear() {
