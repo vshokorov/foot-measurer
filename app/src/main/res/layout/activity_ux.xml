@@ -38,6 +38,13 @@
         android:layout_gravity="center_vertical"
         android:text="@string/my_action" />
 
+    <Button
+        android:id="@+id/btnTestHit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right|center_vertical"
+        android:text="@string/test_hit" />
+
     <TextView
         android:textSize="20sp"
         android:id="@+id/txtDistance"

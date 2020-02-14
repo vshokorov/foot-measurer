@@ -52,9 +52,9 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
     private ArFragment arFragment;
     private AnchorNode lastAnchorNode;
     private TextView txtDistance;
-    Button btnDist, btnHeight, btnClear, btnMyAction;
+    Button btnDist, btnHeight, btnClear, btnMyAction, btnTestHit;
     ModelRenderable cubeRenderable, heightRenderable;
-    boolean btnHeightClicked, btnLengthClicked, btnMyActionClicked;
+    boolean btnHeightClicked, btnLengthClicked, btnMyActionClicked, btnTestHitClicked;
     Vector3 point1, point2;
 
     @SuppressLint("SetTextI18n")
@@ -77,6 +77,7 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
             btnLengthClicked = true;
             btnHeightClicked = false;
             btnMyActionClicked = false;
+            btnTestHitClicked = false;
             onClear();
         });
         btnHeight = findViewById(R.id.btnHeight);
@@ -84,6 +85,7 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
             btnHeightClicked = true;
             btnLengthClicked = false;
             btnMyActionClicked = false;
+            btnTestHitClicked = false;
             onClear();
         });
         btnMyAction = findViewById(R.id.btnMyAction);
@@ -93,6 +95,17 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
             btnHeightClicked = false;
             btnLengthClicked = false;
             btnMyActionClicked = true;
+            btnTestHitClicked = false;
+            onClear();
+        });
+        btnMyAction = findViewById(R.id.btnTestHit);
+        btnMyAction.setOnClickListener(v -> {
+//            Toast.makeText(getApplicationContext(), "MyAction started", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), String.valueOf(arFragment.isArRequired()), Toast.LENGTH_SHORT).show();
+            btnHeightClicked = false;
+            btnLengthClicked = false;
+            btnMyActionClicked = false;
+            btnTestHitClicked = true;
             onClear();
         });
         btnClear = findViewById(R.id.clear);
@@ -266,6 +279,7 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
 
                             AnchorNode anchorNode = new AnchorNode();
                             Anchor anchor = null;
+                            List<HitResult> hitResults = null;
 ////                            anchorNode.setParent(arFragment.getArSceneView().getScene());
 //                            anchorNode.setParent(lastAnchorNode.getParent());
 //                            Vector3 WorldPosition = result.getPoint();
@@ -280,7 +294,8 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
 
                             try {
                                 Frame frame = arFragment.getArSceneView().getArFrame();
-                                anchor = frame.hitTest(phone_width/2, phone_height/2 + 100).get(0).createAnchor();
+                                hitResults = frame.hitTest(phone_width/2, phone_height/2 + 100);
+                                anchor = hitResults.get(0).createAnchor();
                                 anchorNode = new AnchorNode(anchor);
                                 anchorNode.setParent(arFragment.getArSceneView().getScene());
                             } catch (Exception exception) {
@@ -289,7 +304,7 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
 
 //                            Vector3.subtract()
 
-                            Toast.makeText(getApplicationContext(), anchorNode.toString(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), String.valueOf(hitResults.size()), Toast.LENGTH_SHORT).show();
 
 //                            Anchor anchor = hitResult.createAnchor();
 //                            AnchorNode anchorNode = new AnchorNode(anchor);
@@ -344,6 +359,55 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
                                     );
                             lastAnchorNode = anchorNode;
                         }
+                    }
+
+                    if (btnTestHitClicked) {
+                        int val = motionEvent.getActionMasked();
+                        float axisVal = motionEvent.getAxisValue(MotionEvent.AXIS_X, motionEvent.getPointerId(motionEvent.getPointerCount() - 1));
+                        Log.e("Values in MyAction:", String.valueOf(val) + String.valueOf(axisVal));
+
+                        AnchorNode anchorNode = new AnchorNode();
+                        Anchor anchor = null;
+                        List<HitResult> hitResults = null;
+
+                        float phone_width, phone_height;
+                        Display display = getWindowManager().getDefaultDisplay();
+                        android.graphics.Point outSize = new android.graphics.Point();
+                        display.getSize(outSize);
+                        phone_width = outSize.x;
+                        phone_height = outSize.y;
+
+                        try {
+                            Frame frame = arFragment.getArSceneView().getArFrame();
+                            hitResults = frame.hitTest(phone_width/2, phone_height/2 + 100);
+
+                            for(HitResult hitResult1 : hitResults) {
+                                anchor = hitResult1.createAnchor();
+                                anchorNode = new AnchorNode(anchor);
+                                anchorNode.setParent(arFragment.getArSceneView().getScene());
+
+//                                        Pose pose = anchor.getPose();
+//                                        if (arrayList1.isEmpty()) {
+//                                            arrayList1.add(pose.tx());
+//                                            arrayList1.add(pose.ty());
+//                                            arrayList1.add(pose.tz());
+//                                        }
+
+                                TransformableNode transformableNode = new TransformableNode(arFragment.getTransformationSystem());
+                                transformableNode.setParent(anchorNode);
+                                transformableNode.setRenderable(cubeRenderable);
+                                transformableNode.select();
+                                lastAnchorNode = anchorNode;
+                            }
+
+                        } catch (Exception exception) {
+                            Toast.makeText(getApplicationContext(), "error: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+
+                        Toast.makeText(getApplicationContext(), String.valueOf(hitResults.size()), Toast.LENGTH_SHORT).show();
+
+//                            Toast.makeText(getApplicationContext(), "lastAnchorNode == null: " + String.valueOf(lastAnchorNode == null), Toast.LENGTH_SHORT).show();
+
                     }
                 });
 

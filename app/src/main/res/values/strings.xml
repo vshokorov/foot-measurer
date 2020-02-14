@@ -19,5 +19,6 @@
     <string name="length">length</string>
     <string name="height">height</string>
     <string name="clear">Clear</string>
-    <string name="my_action">MyAction</string>
+    <string name="my_action">My Action</string>
+    <string name="test_hit">test hit</string>
 </resources>
