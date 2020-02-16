@@ -1,6 +1,12 @@
 package org.opencv.core;
 
+import android.util.Log;
+
+import org.opencv.android.Utils;
+
 import java.nio.ByteBuffer;
+
+import static android.content.ContentValues.TAG;
 
 // C++: class Mat
 //javadoc: Mat
@@ -22,6 +28,15 @@ public class Mat {
     // javadoc: Mat::Mat()
     public Mat()
     {
+//        nativeObj = 0;
+//
+//        try {
+//            nativeObj = n_Mat();
+//        } catch (Exception exception) {
+//            Log.d(TAG, "error: " + exception.getMessage());
+//        } finally {
+//            return;
+//        }
 
         nativeObj = n_Mat();
 

@@ -1,15 +1,26 @@
 package com.google.ar.sceneform.samples.hellosceneform;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Bitmap;
+import android.content.ContextWrapper;
+import android.net.Uri;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
+import org.opencv.core.CvException;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.imgproc.Imgproc;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -24,6 +35,7 @@ public class CornorDetect {
         Mat img = new Mat();
         Utils.bitmapToMat(bitmap,img);
         System.out.println("img = " + img);
+
 
         // Grayscale image
         Mat gray = new Mat();
@@ -49,6 +61,8 @@ public class CornorDetect {
 
         Mat harrisCorner = new Mat();
         Imgproc.threshold(dst, harrisCorner, 0.00001, 255, Imgproc.THRESH_BINARY);
+
+        System.out.println("harrisCorner.shape = (" + harrisCorner.height() + ", " + harrisCorner.width() + ")");
 
         // Extract corner coordinates
         ArrayList<Point> points = new ArrayList<>();

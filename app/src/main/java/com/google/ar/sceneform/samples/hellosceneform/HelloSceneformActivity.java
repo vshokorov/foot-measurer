@@ -47,6 +47,10 @@ import com.google.ar.sceneform.ux.ArFragment;
 import com.google.ar.sceneform.ux.ScaleController;
 import com.google.ar.sceneform.ux.TransformableNode;
 
+import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.LoaderCallbackInterface;
+import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Mat;
 import org.opencv.core.Point;
 
 import java.io.File;
@@ -128,6 +132,7 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
             Bitmap bitmap = getBitmapFromView();
             // Save Bitmap to album
             saveBmp2Gallery(bitmap,"aaaa");
+
 
             ArrayList<Point> points = CornorDetect.getCorner(bitmap);
             if (points == null){
@@ -404,6 +409,7 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
 
                         ArrayList<Point> points = new ArrayList<>();
                         points.add(new Point(480/2, 640/2));
+
                         showCornerAnchor(points);
 //                            Toast.makeText(getApplicationContext(), "lastAnchorNode == null: " + String.valueOf(lastAnchorNode == null), Toast.LENGTH_SHORT).show();
 
@@ -411,6 +417,35 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
                 });
 
     }
+
+    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
+        @Override
+        public void onManagerConnected(int status) {
+            switch (status) {
+                case LoaderCallbackInterface.SUCCESS:
+                {
+                    Log.i("OpenCV", "OpenCV loaded successfully");
+                    Mat imageMat=new Mat();
+                } break;
+                default:
+                {
+                    super.onManagerConnected(status);
+                } break;
+            }
+        }
+    };
+
+    public void onResume()
+    {
+        super.onResume();
+        if (!OpenCVLoader.initDebug()) {
+            Log.d("OpenCV", "Internal OpenCV library not found. Using OpenCV Manager for initialization");
+            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback);
+        } else {
+            Log.d("OpenCV", "OpenCV library found inside package. Using it!");
+            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+        }
+    };
 
     private void showCornerAnchor(ArrayList<Point> points) {
         AnchorNode anchorNode = new AnchorNode();
@@ -463,51 +498,6 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
         return bitmap;
     }
 
-    public void saveBmp2Gallery(Bitmap bmp, String picName) {
-
-        String fileName = null;
-        //System album catalog
-        String galleryPath= Environment.getExternalStorageDirectory()
-                + File.separator + Environment.DIRECTORY_DCIM
-                +File.separator+"Camera"+File.separator;
-
-
-        // Declare file objects
-        File file = null;
-        // Declare output stream
-        FileOutputStream outStream = null;
-
-        try {
-            // If there is a Target file, get the file object directly, otherwise create a file with filename as the name
-            file = new File(galleryPath, picName+ ".jpg");
-
-            // Get file relative path
-            fileName = file.toString();
-            // Get the output stream, if there is content in the file, append the content
-            outStream = new FileOutputStream(fileName);
-            if (null != outStream) {
-                bmp.compress(Bitmap.CompressFormat.PNG, 90, outStream);
-            }
-
-        } catch (Exception e) {
-            e.getStackTrace();
-        }finally {
-            try {
-                if (outStream != null) {
-                    outStream.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        MediaStore.Images.Media.insertImage(getContentResolver(), bmp, fileName, null);
-        Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-        Uri uri = Uri.fromFile(file);
-        intent.setData(uri);
-        sendBroadcast(intent);
-
-        Toast.makeText(this, "Finish saving！", Toast.LENGTH_SHORT).show();
-    }
 
     private void onClear() {
         List<Node> children = new ArrayList<>(arFragment.getArSceneView().getScene().getChildren());
@@ -587,4 +577,51 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
 //            Handle updated anchors...
 //        }
     }
+
+    private void saveBmp2Gallery(Bitmap bmp, String picName) {
+
+        String fileName = null;
+        //System album catalog
+        String galleryPath= Environment.getExternalStorageDirectory()
+                + File.separator + Environment.DIRECTORY_DCIM
+                +File.separator+"Camera"+File.separator;
+
+
+        // Declare file objects
+        File file = null;
+        // Declare output stream
+        FileOutputStream outStream = null;
+
+        try {
+            // If there is a Target file, get the file object directly, otherwise create a file with filename as the name
+            file = new File(galleryPath, picName+ ".jpg");
+
+            // Get file relative path
+            fileName = file.toString();
+            // Get the output stream, if there is content in the file, append the content
+            outStream = new FileOutputStream(fileName);
+            if (null != outStream) {
+                bmp.compress(Bitmap.CompressFormat.PNG, 90, outStream);
+            }
+
+        } catch (Exception e) {
+            e.getStackTrace();
+        }finally {
+            try {
+                if (outStream != null) {
+                    outStream.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        MediaStore.Images.Media.insertImage(getContentResolver(), bmp, fileName, null);
+        Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        Uri uri = Uri.fromFile(file);
+        intent.setData(uri);
+        sendBroadcast(intent);
+
+        Toast.makeText(this, "Finish saving！", Toast.LENGTH_SHORT).show();
+    }
+
 }

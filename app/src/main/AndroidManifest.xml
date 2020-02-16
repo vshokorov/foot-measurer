@@ -16,6 +16,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.google.ar.sceneform.samples.hellosceneform">
+<!--    package="com.androidcv">-->
     <!-- Always needed for AR. -->
 
     <uses-permission android:name="android.permission.CAMERA" />
