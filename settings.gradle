@@ -1,5 +1,7 @@
-include ':app'
+include ':app', ':openCVLibrary345'
 
 // Uncomment to include the source version of the ux package in your project.
 //include ':sceneformux'
 //project(':sceneformux').projectDir=new File('../../sceneformux/ux')
+include ':opencv'
+include ':openCVLibrary345'

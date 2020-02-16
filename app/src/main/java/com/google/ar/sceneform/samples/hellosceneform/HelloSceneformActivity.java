@@ -47,6 +47,8 @@ import com.google.ar.sceneform.ux.ArFragment;
 import com.google.ar.sceneform.ux.ScaleController;
 import com.google.ar.sceneform.ux.TransformableNode;
 
+import org.opencv.core.Point;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -126,6 +128,20 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
             Bitmap bitmap = getBitmapFromView();
             // Save Bitmap to album
             saveBmp2Gallery(bitmap,"aaaa");
+
+            ArrayList<Point> points = CornorDetect.getCorner(bitmap);
+            if (points == null){
+                Toast.makeText(this, "Detection failed", Toast.LENGTH_SHORT).show();
+            }else{
+                Log.d(TAG, "cornors: "+points.size());
+                Log.d(TAG, "p1"+points.get(0).x+", "+points.get(0).y);
+                Log.d(TAG, "p2"+points.get(1).x+", "+points.get(1).y);
+                Log.d(TAG, "p3"+points.get(2).x+", "+points.get(2).y);
+                Log.d(TAG, "p4"+points.get(3).x+", "+points.get(3).y);
+                Toast.makeText(this, "Successful detection", Toast.LENGTH_SHORT).show();
+
+                showCornerAnchor(points);
+            }
         });
 
         btnClear = findViewById(R.id.clear);
@@ -386,51 +402,52 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
                         float axisVal = motionEvent.getAxisValue(MotionEvent.AXIS_X, motionEvent.getPointerId(motionEvent.getPointerCount() - 1));
                         Log.e("Values in MyAction:", String.valueOf(val) + String.valueOf(axisVal));
 
-                        AnchorNode anchorNode = new AnchorNode();
-                        Anchor anchor = null;
-                        List<HitResult> hitResults = null;
-
-                        float phone_width, phone_height;
-                        Display display = getWindowManager().getDefaultDisplay();
-                        android.graphics.Point outSize = new android.graphics.Point();
-                        display.getSize(outSize);
-                        phone_width = outSize.x;
-                        phone_height = outSize.y;
-
-                        try {
-                            Frame frame = arFragment.getArSceneView().getArFrame();
-                            hitResults = frame.hitTest(phone_width/2, phone_height/2 + 100);
-
-                            for(HitResult hitResult1 : hitResults) {
-                                anchor = hitResult1.createAnchor();
-                                anchorNode = new AnchorNode(anchor);
-                                anchorNode.setParent(arFragment.getArSceneView().getScene());
-
-//                                        Pose pose = anchor.getPose();
-//                                        if (arrayList1.isEmpty()) {
-//                                            arrayList1.add(pose.tx());
-//                                            arrayList1.add(pose.ty());
-//                                            arrayList1.add(pose.tz());
-//                                        }
-
-                                TransformableNode transformableNode = new TransformableNode(arFragment.getTransformationSystem());
-                                transformableNode.setParent(anchorNode);
-                                transformableNode.setRenderable(cubeRenderable);
-                                transformableNode.select();
-                                lastAnchorNode = anchorNode;
-                            }
-
-                        } catch (Exception exception) {
-                            Toast.makeText(getApplicationContext(), "error: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-
-                        Toast.makeText(getApplicationContext(), String.valueOf(hitResults.size()), Toast.LENGTH_SHORT).show();
-
+                        ArrayList<Point> points = new ArrayList<>();
+                        points.add(new Point(480/2, 640/2));
+                        showCornerAnchor(points);
 //                            Toast.makeText(getApplicationContext(), "lastAnchorNode == null: " + String.valueOf(lastAnchorNode == null), Toast.LENGTH_SHORT).show();
 
                     }
                 });
 
+    }
+
+    private void showCornerAnchor(ArrayList<Point> points) {
+        AnchorNode anchorNode = new AnchorNode();
+        Anchor anchor = null;
+        List<HitResult> hitResults = null;
+
+        float phone_width, phone_height;
+        Display display = getWindowManager().getDefaultDisplay();
+        android.graphics.Point outSize = new android.graphics.Point();
+        display.getSize(outSize);
+        phone_width = outSize.x;
+        phone_height = outSize.y;
+        int pic_width = 480;
+        int pic_height = 640;
+
+        for (Point point : points) {
+            try {
+                Frame frame = arFragment.getArSceneView().getArFrame();
+                hitResults = frame.hitTest((float) point.x * phone_width / pic_width, (float) point.y * phone_height / pic_height + 100);
+
+                for (HitResult hitResult1 : hitResults) {
+                    anchor = hitResult1.createAnchor();
+                    anchorNode = new AnchorNode(anchor);
+                    anchorNode.setParent(arFragment.getArSceneView().getScene());
+
+                    TransformableNode transformableNode = new TransformableNode(arFragment.getTransformationSystem());
+                    transformableNode.setParent(anchorNode);
+                    transformableNode.setRenderable(cubeRenderable);
+                    transformableNode.select();
+                    lastAnchorNode = anchorNode;
+                }
+
+            } catch (Exception exception) {
+                Toast.makeText(getApplicationContext(), "error: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+            Toast.makeText(getApplicationContext(), String.valueOf(hitResults.size()), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private Bitmap getBitmapFromView(){

@@ -69,12 +69,16 @@ public class CornorDetect {
         System.out.println("gap = " + gap);
         System.out.println("points.size() = " + points.size());
         if (points.size()<5){
+
+            img.release();
             return null;
         }else {
             points = getPoint(points);
             for (Point point: points) {
                 System.out.println("point = " + point);
             }
+
+            img.release();
             return points;
         }
     }

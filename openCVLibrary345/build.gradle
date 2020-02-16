@@ -1,6 +1,7 @@
 apply plugin: 'com.android.library'
+
 android {
-    compileSdkVersion 28
+    compileSdkVersion 27
     buildToolsVersion "28.0.3"
 
     defaultConfig {
@@ -14,7 +15,4 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
-}
-
-dependencies {
 }
