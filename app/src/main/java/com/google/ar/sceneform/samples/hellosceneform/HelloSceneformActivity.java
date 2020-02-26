@@ -36,7 +36,6 @@ import com.google.ar.sceneform.Node;
 import com.google.ar.sceneform.Scene;
 import com.google.ar.sceneform.Sun;
 import com.google.ar.sceneform.collision.Box;
-import com.google.ar.sceneform.collision.Ray;
 import com.google.ar.sceneform.math.Quaternion;
 import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.Color;
@@ -53,9 +52,14 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -69,9 +73,10 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
     private ArFragment arFragment;
     private AnchorNode lastAnchorNode;
     private TextView txtDistance;
-    Button btnDist, btnHeight, btnClear, btnMyAction, btnTestHit, btnTakePhoto;
+    Button btnDist, btnHeight, btnClear, btnMyAction, btnTestHit, btnTakePhoto, btnMyActionList;
+    PrintStream pPRINT = null;
     ModelRenderable cubeRenderable, heightRenderable;
-    boolean btnHeightClicked, btnLengthClicked, btnMyActionClicked, btnTestHitClicked, btnTakePhotoClicked;
+    boolean btnHeightClicked, btnLengthClicked, btnMyActionClicked, btnTestHitClicked, btnTakePhotoClicked, btnMyActionListClicked;
     Vector3 point1, point2;
 
     @SuppressLint("SetTextI18n")
@@ -95,6 +100,7 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
             btnHeightClicked = false;
             btnMyActionClicked = false;
             btnTestHitClicked = false;
+            btnMyActionListClicked = false;
             onClear();
         });
         btnHeight = findViewById(R.id.btnHeight);
@@ -103,6 +109,7 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
             btnLengthClicked = false;
             btnMyActionClicked = false;
             btnTestHitClicked = false;
+            btnMyActionListClicked = false;
             onClear();
         });
         btnMyAction = findViewById(R.id.btnMyAction);
@@ -113,6 +120,7 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
             btnLengthClicked = false;
             btnMyActionClicked = true;
             btnTestHitClicked = false;
+            btnMyActionListClicked = false;
             onClear();
         });
         btnTestHit = findViewById(R.id.btnTestHit);
@@ -123,6 +131,18 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
             btnLengthClicked = false;
             btnMyActionClicked = false;
             btnTestHitClicked = true;
+            btnMyActionListClicked = false;
+            onClear();
+        });
+        btnMyActionList = findViewById(R.id.btnMyActionList);
+        btnMyActionList.setOnClickListener(v -> {
+//            Toast.makeText(getApplicationContext(), "MyAction started", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(getApplicationContext(), String.valueOf(arFragment.isArRequired()), Toast.LENGTH_SHORT).show();
+            btnHeightClicked = false;
+            btnLengthClicked = false;
+            btnMyActionClicked = false;
+            btnTestHitClicked = false;
+            btnMyActionListClicked = true;
             onClear();
         });
         btnTakePhoto = findViewById(R.id.btnTakePhoto);
@@ -130,6 +150,12 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
             Toast.makeText(this, "Convert！", Toast.LENGTH_SHORT).show();
             // Get Bitmap for corner detection
             Bitmap bitmap = getBitmapFromView();
+
+            // БОЛЬШОЙ КОСТЫЛЬ!!!!
+            Bitmap newbitmap = Bitmap.createBitmap(bitmap,92, 0, bitmap.getWidth() - 92 * 2, bitmap.getHeight());
+            // Save Bitmap to album
+            saveBmp2Gallery(newbitmap,"aaaa_");
+
             // Save Bitmap to album
             saveBmp2Gallery(bitmap,"aaaa");
 
@@ -150,7 +176,16 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
         });
 
         btnClear = findViewById(R.id.clear);
-        btnClear.setOnClickListener(v -> onClear());
+        btnClear.setOnClickListener(v -> {
+            try {
+                if (pPRINT != null) {
+                    pPRINT.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            onClear();
+        });
 
         MaterialFactory.makeTransparentWithColor(this, new Color(0F, 0F, 244F))
                 .thenAccept(
@@ -402,6 +437,127 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
                         }
                     }
 
+                    if (btnMyActionListClicked) {
+                        if (lastAnchorNode == null) {
+                            AnchorNode anchorNode = new AnchorNode();
+                            Anchor anchor = null;
+
+                            float phone_width, phone_height;
+                            Display display = getWindowManager().getDefaultDisplay();
+                            android.graphics.Point outSize = new android.graphics.Point();
+                            display.getSize(outSize);
+                            phone_width = outSize.x;
+                            phone_height = outSize.y;
+
+                            try {
+                                Frame frame = arFragment.getArSceneView().getArFrame();
+                                anchor = frame.hitTest(phone_width/2, phone_height/2 + 100).get(0).createAnchor();
+                                anchorNode = new AnchorNode(anchor);
+                                anchorNode.setParent(arFragment.getArSceneView().getScene());
+                            } catch (Exception exception) {
+                                Toast.makeText(getApplicationContext(), "error: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
+
+                            Pose pose = anchor.getPose();
+                            if (arrayList1.isEmpty()) {
+                                arrayList1.add(pose.tx());
+                                arrayList1.add(pose.ty());
+                                arrayList1.add(pose.tz());
+                            }
+
+                            TransformableNode transformableNode = new TransformableNode(arFragment.getTransformationSystem());
+                            transformableNode.setParent(anchorNode);
+                            transformableNode.setRenderable(cubeRenderable);
+                            transformableNode.select();
+                            lastAnchorNode = anchorNode;
+
+//                            Toast.makeText(getApplicationContext(), "lastAnchorNode == null: " + String.valueOf(lastAnchorNode == null), Toast.LENGTH_SHORT).show();
+                        } else {
+                            int val = motionEvent.getActionMasked();
+                            float axisVal = motionEvent.getAxisValue(MotionEvent.AXIS_X, motionEvent.getPointerId(motionEvent.getPointerCount() - 1));
+                            Log.e("Values in MyAction:", String.valueOf(val) + String.valueOf(axisVal));
+
+//                            ((AnchorNode) node).getAnchor().detach();
+
+                            AnchorNode anchorNode = new AnchorNode();
+                            Anchor anchor = null;
+                            List<HitResult> hitResults = null;
+
+                            float phone_width, phone_height;
+                            Display display = getWindowManager().getDefaultDisplay();
+                            android.graphics.Point outSize = new android.graphics.Point();
+                            display.getSize(outSize);
+                            phone_width = outSize.x;
+                            phone_height = outSize.y;
+
+                            try {
+                                Frame frame = arFragment.getArSceneView().getArFrame();
+                                hitResults = frame.hitTest(phone_width/2, phone_height/2 + 100);
+                                anchor = hitResults.get(0).createAnchor();
+                                anchorNode = new AnchorNode(anchor);
+                                anchorNode.setParent(arFragment.getArSceneView().getScene());
+                            } catch (Exception exception) {
+                                Toast.makeText(getApplicationContext(), "error: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
+
+                            Toast.makeText(getApplicationContext(), String.valueOf(hitResults.size()), Toast.LENGTH_SHORT).show();
+
+
+                            Pose pose = anchor.getPose();
+
+                            if (arrayList2.isEmpty()) {
+                                arrayList2.add(pose.tx());
+                                arrayList2.add(pose.ty());
+                                arrayList2.add(pose.tz());
+                                float d = getDistanceMeters(arrayList1, arrayList2);
+                                txtDistance.setText("Distance: " + String.valueOf(d));
+                                writeFile( "premier", "Distance: " + String.valueOf(d));
+                            } else {
+                                arrayList1.clear();
+                                arrayList1.addAll(arrayList2);
+                                arrayList2.clear();
+                                arrayList2.add(pose.tx());
+                                arrayList2.add(pose.ty());
+                                arrayList2.add(pose.tz());
+                                float d = getDistanceMeters(arrayList1, arrayList2);
+                                txtDistance.setText("Distance: " + String.valueOf(d));
+                                writeFile( "premier", "Distance: " + String.valueOf(d));
+                            }
+
+
+                            TransformableNode transformableNode = new TransformableNode(arFragment.getTransformationSystem());
+                            transformableNode.setParent(anchorNode);
+                            transformableNode.setRenderable(cubeRenderable);
+                            transformableNode.select();
+
+                            Vector3 point1, point2;
+                            point1 = lastAnchorNode.getWorldPosition();
+                            point2 = anchorNode.getWorldPosition();
+
+                            final Vector3 difference = Vector3.subtract(point1, point2);
+                            final Vector3 directionFromTopToBottom = difference.normalized();
+                            final Quaternion rotationFromAToB =
+                                    Quaternion.lookRotation(directionFromTopToBottom, Vector3.up());
+
+                            AnchorNode finalAnchorNode = anchorNode;
+                            MaterialFactory.makeOpaqueWithColor(getApplicationContext(), new Color(0, 255, 244))
+                                    .thenAccept(
+                                            material -> {
+                                                ModelRenderable model = ShapeFactory.makeCube(
+                                                        new Vector3(.01f, .01f, difference.length()),
+                                                        Vector3.zero(), material);
+                                                Node node = new Node();
+                                                node.setParent(finalAnchorNode);
+                                                node.setRenderable(model);
+                                                node.setWorldPosition(Vector3.add(point1, point2).scaled(.5f));
+                                                node.setWorldRotation(rotationFromAToB);
+                                            }
+                                    );
+                            lastAnchorNode.getAnchor().detach();
+                            lastAnchorNode = anchorNode;
+                        }
+                    }
+
                     if (btnTestHitClicked) {
                         int val = motionEvent.getActionMasked();
                         float axisVal = motionEvent.getAxisValue(MotionEvent.AXIS_X, motionEvent.getPointerId(motionEvent.getPointerCount() - 1));
@@ -446,6 +602,52 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
         }
     };
+
+    void writeFile(String name, String msg) {
+
+        try {
+            if (pPRINT == null) {
+                String fileName = null;
+                FileOutputStream outStream = null;
+                //System album catalog
+                String filePath = Environment.getExternalStorageDirectory()
+                        + File.separator + Environment.DIRECTORY_DCIM
+                        + File.separator + "Out_stream" + File.separator;
+
+
+                // Declare file objects
+                File file = null;
+                // Declare output stream
+                //            FileOutputStream outStream = null;
+
+
+                // If there is a Target file, get the file object directly, otherwise create a file with filename as the name
+                file = new File(filePath, name + ".txt");
+
+                // Get file relative path
+                fileName = file.toString();
+                // Get the output stream, if there is content in the file, append the content
+                outStream = new FileOutputStream(fileName);
+                if (null != outStream) {
+                    pPRINT = new PrintStream(outStream);
+                    pPRINT.println(msg + "\n");
+                }
+            }else {
+                pPRINT.printf(msg + "\n");
+            }
+        } catch (Exception e) {
+            e.getStackTrace();
+        }finally {
+//            try {
+//                if (outStream != null) {
+//                    outStream.close();
+//                }
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+        }
+    }
+
 
     private void showCornerAnchor(ArrayList<Point> points) {
         AnchorNode anchorNode = new AnchorNode();

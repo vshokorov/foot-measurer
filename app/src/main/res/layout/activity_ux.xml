@@ -31,13 +31,6 @@
         android:layout_gravity="center_horizontal"
         android:text="@string/clear" />
 
-    <Button
-        android:id="@+id/btnMyAction"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        android:text="@string/my_action" />
-
     <TextView
         android:textSize="20sp"
         android:id="@+id/txtDistance"
@@ -74,6 +67,28 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center|end"
             android:text="@string/take_photo" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/btnMyAction"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center|start"
+            android:text="@string/my_action" />
+
+        <Button
+            android:id="@+id/btnMyActionList"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center|start"
+            android:text="@string/my_action_list" />
 
     </LinearLayout>
 
