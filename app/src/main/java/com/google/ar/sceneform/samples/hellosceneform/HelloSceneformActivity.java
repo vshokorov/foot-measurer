@@ -64,6 +64,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+
 public class HelloSceneformActivity extends AppCompatActivity implements Node.OnTapListener, Scene.OnUpdateListener {
     private static final String TAG = HelloSceneformActivity.class.getSimpleName();
     private static final double MIN_OPENGL_VERSION = 3.0;
@@ -174,6 +175,7 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
                 showCornerAnchor(points);
             }
         });
+
 
         btnClear = findViewById(R.id.clear);
         btnClear.setOnClickListener(v -> {
@@ -511,7 +513,7 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
                                 arrayList2.add(pose.tz());
                                 float d = getDistanceMeters(arrayList1, arrayList2);
                                 txtDistance.setText("Distance: " + String.valueOf(d));
-                                writeFile( "premier", "Distance: " + String.valueOf(d));
+                                writeFile( "measurements", String.valueOf(d));
                             } else {
                                 arrayList1.clear();
                                 arrayList1.addAll(arrayList2);
@@ -521,7 +523,7 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
                                 arrayList2.add(pose.tz());
                                 float d = getDistanceMeters(arrayList1, arrayList2);
                                 txtDistance.setText("Distance: " + String.valueOf(d));
-                                writeFile( "premier", "Distance: " + String.valueOf(d));
+                                writeFile( "measurements", String.valueOf(d));
                             }
 
 
@@ -540,19 +542,19 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
                                     Quaternion.lookRotation(directionFromTopToBottom, Vector3.up());
 
                             AnchorNode finalAnchorNode = anchorNode;
-                            MaterialFactory.makeOpaqueWithColor(getApplicationContext(), new Color(0, 255, 244))
-                                    .thenAccept(
-                                            material -> {
-                                                ModelRenderable model = ShapeFactory.makeCube(
-                                                        new Vector3(.01f, .01f, difference.length()),
-                                                        Vector3.zero(), material);
-                                                Node node = new Node();
-                                                node.setParent(finalAnchorNode);
-                                                node.setRenderable(model);
-                                                node.setWorldPosition(Vector3.add(point1, point2).scaled(.5f));
-                                                node.setWorldRotation(rotationFromAToB);
-                                            }
-                                    );
+//                            MaterialFactory.makeOpaqueWithColor(getApplicationContext(), new Color(0, 255, 244))
+//                                    .thenAccept(
+//                                            material -> {
+//                                                ModelRenderable model = ShapeFactory.makeCube(
+//                                                        new Vector3(.01f, .01f, difference.length()),
+//                                                        Vector3.zero(), material);
+//                                                Node node = new Node();
+//                                                node.setParent(finalAnchorNode);
+//                                                node.setRenderable(model);
+//                                                node.setWorldPosition(Vector3.add(point1, point2).scaled(.5f));
+//                                                node.setWorldRotation(rotationFromAToB);
+//                                            }
+//                                    );
                             lastAnchorNode.getAnchor().detach();
                             lastAnchorNode = anchorNode;
                         }
@@ -591,8 +593,7 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
         }
     };
 
-    public void onResume()
-    {
+    public void onResume() {
         super.onResume();
         if (!OpenCVLoader.initDebug()) {
             Log.d("OpenCV", "Internal OpenCV library not found. Using OpenCV Manager for initialization");
