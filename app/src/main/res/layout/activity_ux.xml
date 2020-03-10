@@ -90,6 +90,12 @@
             android:layout_gravity="center|start"
             android:text="@string/my_action_list" />
 
+        <Button
+            android:id="@+id/btnTestPython"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center|start"
+            android:text="@string/test_python" />
     </LinearLayout>
 
 </FrameLayout>

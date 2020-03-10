@@ -22,6 +22,8 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.chaquo.python.Python;
+import com.chaquo.python.android.AndroidPlatform;
 import com.google.ar.core.Anchor;
 import com.google.ar.core.Frame;
 import com.google.ar.core.HitResult;
@@ -64,6 +66,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+//import chaquopy.demo.test.UIDemoActivity;
+
 
 public class HelloSceneformActivity extends AppCompatActivity implements Node.OnTapListener, Scene.OnUpdateListener {
     private static final String TAG = HelloSceneformActivity.class.getSimpleName();
@@ -74,7 +78,7 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
     private ArFragment arFragment;
     private AnchorNode lastAnchorNode;
     private TextView txtDistance;
-    Button btnDist, btnHeight, btnClear, btnMyAction, btnTestHit, btnTakePhoto, btnMyActionList;
+    Button btnDist, btnHeight, btnClear, btnMyAction, btnTestHit, btnTakePhoto, btnMyActionList, btnTestPython;
     PrintStream pPRINT = null;
     ModelRenderable cubeRenderable, heightRenderable;
     boolean btnHeightClicked, btnLengthClicked, btnMyActionClicked, btnTestHitClicked, btnTakePhotoClicked, btnMyActionListClicked;
@@ -145,6 +149,18 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
             btnTestHitClicked = false;
             btnMyActionListClicked = true;
             onClear();
+        });
+        btnTestPython = findViewById(R.id.btnTestPython);
+        btnTestPython.setOnClickListener(v -> {
+
+            if (! Python.isStarted()){
+                Python.start(new AndroidPlatform(getApplicationContext()));
+            }
+            Python py = Python.getInstance();
+            py.getModule("main").callAttr("test");
+
+
+//            UIDemoActivity.test();
         });
         btnTakePhoto = findViewById(R.id.btnTakePhoto);
         btnTakePhoto.setOnClickListener(v -> {

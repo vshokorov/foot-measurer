@@ -13,9 +13,10 @@
  * limitations under the License.
  */
 apply plugin: 'com.android.application'
+apply plugin: 'com.chaquo.python'  // Must come after com.android.application
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion 28
     defaultConfig {
         applicationId "com.google.ar.sceneform.samples.hellosceneform"
 
@@ -23,8 +24,32 @@ android {
         // AR Required apps must declare minSdkVersion >= 24.
         minSdkVersion 28
         targetSdkVersion 28
-        versionCode 1
+//        versionCode 1
         versionName "1.0"
+        python {
+            // If Chaquopy fails to find Python on your build machine, enable the following
+            // line and edit it to point to Python 3.5 or later.
+            buildPython "/usr/bin/python"
+            buildPython "python3"
+//            buildPython try "python3.8", then "python3"
+
+
+//            // Android UI demo
+            pip {
+                install "Pygments==2.2.0"   // Also used in Java API demo
+            }
+//            staticProxy "chaquopy.demo.test"
+//
+//            // Python unit tests
+//            pip {
+//                install "murmurhash==0.28.0"  // Requires chaquopy-libcxx
+//            }
+//            staticProxy("chaquopy.test.static_proxy.basic", "chaquopy.test.static_proxy.header",
+//                    "chaquopy.test.static_proxy.method")
+            pyc {
+                src false  // For testing bytecode compilation on device.
+            }
+        }
         ndk {
             /*
              * Sceneform is available for the following ABIs:
@@ -36,14 +61,29 @@ android {
              * 1. 'arm64-v8a' to run on devices
              * 2. 'x86' to run in the Android emulator
              */
-            abiFilters 'arm64-v8a', 'x86'
+            abiFilters "armeabi-v7a", 'arm64-v8a', 'x86'
+        }
+        // Chaquopy generates extra internal-use constructors on static proxy classes.
+        lintOptions {
+            disable "ValidFragment"
+        }
+
+        buildToolsVersion '28.0.3'
+    }
+
+    flavorDimensions "abi"
+    productFlavors {
+        arm {
+            dimension "abi"
+            ndk { abiFilters "armeabi-v7a" }
+        }
+        x86 {
+            dimension "abi"
+            ndk { abiFilters "x86" }
         }
     }
 
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -54,11 +94,16 @@ android {
     lintOptions {
         abortOnError false
     }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
-    implementation "com.google.ar.sceneform.ux:sceneform-ux:1.5.1"
-    implementation "com.android.support:appcompat-v7:27.1.1"
+    implementation 'com.google.ar.sceneform.ux:sceneform-ux:1.15.0'
+    implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation project(path: ':openCVLibrary345')
     implementation project(path: ':openCVLibrary345')
 }
