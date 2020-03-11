@@ -20,10 +20,16 @@ buildscript {
         google()
         jcenter()
         mavenLocal()
+        maven { url "https://chaquo.com/maven" }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.2.1'
-        classpath 'com.google.ar.sceneform:plugin:1.5.1'
+        classpath 'com.android.tools.build:gradle:3.5.3'
+        classpath 'com.google.ar.sceneform:plugin:1.15.0'
+
+        // Newer versions may be available: please check here:
+        // https://chaquo.com/chaquopy/doc/current/changelog.html
+        classpath "com.chaquo.python:gradle:7.0.2"
+
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }

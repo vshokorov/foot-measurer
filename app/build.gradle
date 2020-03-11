@@ -38,7 +38,7 @@ android {
             pip {
                 install "Pygments==2.2.0"   // Also used in Java API demo
             }
-//            staticProxy "chaquopy.demo.test"
+            staticProxy "main"
 //
 //            // Python unit tests
 //            pip {

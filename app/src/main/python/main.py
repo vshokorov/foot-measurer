@@ -1,6 +1,7 @@
-#from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function
 
-#from java import dynamic_proxy, jboolean, jvoid, Override, static_proxy
+from java import dynamic_proxy, jboolean, jvoid, Override
+from java import constructor, method, static_proxy, jint
 
 #from android.app import AlertDialog
 #from android.content import Context, DialogInterface
@@ -15,5 +16,22 @@
 #from com.chaquo.python.demo import App, R
 #import sys
 
-def test():
+from java.lang import String
+from types import MappingProxyType
+
+@method(jint, [jint])
+def test(a):
     print("Python : Hello!")
+    print("Python :", a)
+    print("Python :", a.__repr__())
+    return a + 10
+
+class BasicAdder(static_proxy()):
+    @constructor([jint])
+    def __init__(self, n):
+        super(BasicAdder, self).__init__()
+        self.n = n
+
+    @method(jint, [jint])
+    def add(self, x):
+        return self.n + x
