@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 
 from java import dynamic_proxy, jboolean, jvoid, Override
 from java import constructor, method, static_proxy, jint
+from java import cast, jarray
 
 #from android.app import AlertDialog
 #from android.content import Context, DialogInterface
@@ -19,18 +20,23 @@ from java import constructor, method, static_proxy, jint
 from java.lang import String
 from types import MappingProxyType
 
-@method(jint, [jint])
-def test(a):
-    print("Python : Hello!")
-    print("Python :", a)
-    return a + 10
+import numpy as np
+from array import array
 
-class BasicAdder(static_proxy()):
+class BasicTransformer(static_proxy()):
     @constructor([jint])
     def __init__(self, n):
-        super(BasicAdder, self).__init__()
+        super(BasicTransformer, self).__init__()
         self.n = n
 
     @method(jint, [jint])
     def add(self, x):
         return self.n + x
+
+    @method(jarray(jint), [jarray(jint)])
+    def array_add(self, x):
+        x = np.array(x)
+        print("Python: ", type(x))
+        print("Python: ", type(x[0]))
+        x = x+3
+        return array('l', x)

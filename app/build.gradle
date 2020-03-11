@@ -37,8 +37,10 @@ android {
 //            // Android UI demo
             pip {
                 install "Pygments==2.2.0"   // Also used in Java API demo
+                install "numpy"
             }
             staticProxy "main"
+            staticProxy "image_transformer"
 //
 //            // Python unit tests
 //            pip {

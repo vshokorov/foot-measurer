@@ -67,6 +67,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import image_transformer.BasicTransformer;
 import main.BasicAdder;
 
 //import .python.chaquopy.main.*;
@@ -161,18 +162,32 @@ public class HelloSceneformActivity extends AppCompatActivity implements Node.On
                 Python.start(new AndroidPlatform(getApplicationContext()));
             }
             Python py = Python.getInstance();
-            try {
-                PyObject a = py.getModule("main").callAttr("test", 1);
-                Toast.makeText(this, "1+10: " + String.valueOf(a.toInt()), Toast.LENGTH_SHORT).show();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+//            try {
+//                PyObject a = py.getModule("main").callAttr("test", 1);
+//                Toast.makeText(this, "1+10: " + String.valueOf(a.toInt()), Toast.LENGTH_SHORT).show();
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+
+//            try {
+//                PyObject BA = py.getModule("main").get("BasicAdder");
+//                PyObject ba_po = BA.call(22);
+//                BasicAdder ba = ba_po.toJava(BasicAdder.class);
+//                Toast.makeText(this, "22+3: " + String.valueOf(ba.add(3)), Toast.LENGTH_SHORT).show();
+////                assertEquals(45, ba.add(3));
+////                assertSame(ba_po, PyObject.fromJava(ba));
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
 
             try {
-                PyObject BA = py.getModule("main").get("BasicAdder");
+                PyObject BA = py.getModule("image_transformer").get("BasicTransformer");
                 PyObject ba_po = BA.call(22);
-                BasicAdder ba = ba_po.toJava(BasicAdder.class);
-                Toast.makeText(this, "22+3: " + String.valueOf(ba.add(3)), Toast.LENGTH_SHORT).show();
+                BasicTransformer ba = ba_po.toJava(BasicTransformer.class);
+                int[] x = new int[] {1, 2, 3};
+                int[] y = ba.array_add(x);
+                int a = (int) y[0];
+                Toast.makeText(this, "1+3: " + String.valueOf(a), Toast.LENGTH_SHORT).show();
 //                assertEquals(45, ba.add(3));
 //                assertSame(ba_po, PyObject.fromJava(ba));
             } catch (Exception e) {
